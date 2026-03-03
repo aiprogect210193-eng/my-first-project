@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Агент — Маркетинговая платформа</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --sidebar: #0f172a;
+      --sidebar-hover: #1e293b;
+      --accent: #6366f1;
+      --accent-light: #eef2ff;
+      --success: #22c55e;
+      --success-light: #f0fdf4;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -.2px; }
+    .logo-sub { font-size: 11px; color: rgba(255,255,255,.3); margin-top: 2px; }
+
+    .sidebar-nav { flex: 1; padding: 14px 10px; }
+
+    .nav-section { margin-bottom: 24px; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: rgba(255,255,255,.22);
+      padding: 0 10px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
+      color: rgba(255,255,255,.5);
+      font-size: 13.5px;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .nav-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,.8); }
+    .nav-item.active { background: rgba(99,102,241,.18); color: #fff; }
+    .nav-item.active .nav-icon { color: #a5b4fc; }
+
+    .nav-icon { width: 18px; text-align: center; font-size: 14px; flex-shrink: 0; opacity: .7; }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+
+    .status-row { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #475569; flex-shrink: 0; }
+    .dot.online { background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,.2); }
+    .status-text { font-size: 12px; color: rgba(255,255,255,.28); }
+
+    /* ── Main ─────────────────────────────────── */
+    .main { margin-left: 220px; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .topbar {
+      height: 60px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky; top: 0; z-index: 50;
+    }
+
+    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+    .date-chip {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #eef2ff; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); padding: 6px 10px; }
+    .btn-ghost:hover { color: var(--text); background: var(--bg); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    .content { padding: 28px; flex: 1; }
+
+    /* ── Cards ────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .card-body { padding: 20px; }
+
+    /* ── KPI Grid ─────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 10px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.5px;
+      line-height: 1;
+    }
+
+    .kpi-footer { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+    .delta { font-size: 12px; font-weight: 600; }
+    .delta-good { color: var(--success); }
+    .delta-bad { color: var(--danger); }
+
+    /* ── Layout helpers ───────────────────────── */
+    .grid-cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .col-6040 { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+    .mb-16 { margin-bottom: 16px; }
+    .mb-20 { margin-bottom: 20px; }
+    .mb-24 { margin-bottom: 24px; }
+
+    /* ── Badge ────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 9px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600;
+    }
+
+    .badge-green { background: var(--success-light); color: #15803d; }
+    .badge-red { background: var(--danger-light); color: #b91c1c; }
+    .badge-yellow { background: var(--warning-light); color: #b45309; }
+    .badge-blue { background: var(--accent-light); color: #4338ca; }
+    .badge-gray { background: var(--border-light); color: var(--text-secondary); }
+
+    /* ── Table ────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: 10px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #fafbff; }
+
+    /* ── Filter tabs ──────────────────────────── */
+    .filter-tabs {
+      display: inline-flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .filter-tab {
+      padding: 6px 14px; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .15s;
+      color: var(--text-secondary);
+      border: none; background: transparent;
+      font-family: inherit;
+    }
+
+    .filter-tab.active { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+
+    /* ── Empty state ──────────────────────────── */
+    .empty { text-align: center; padding: 40px 24px; color: var(--text-muted); }
+    .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .4; }
+    .empty-title { font-size: 13.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+    .empty-sub { font-size: 12.5px; }
+
+    /* ── Page header ──────────────────────────── */
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .page-title { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+    .page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+    /* ── Slide-over ───────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,.45);
+      z-index: 200; display: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay.open { display: block; }
+
+    .slideover {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 440px;
+      background: var(--card);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+      overflow-y: auto;
+      box-shadow: -8px 0 32px rgba(0,0,0,.14);
+    }
+
+    .slideover.open { transform: translateX(0); }
+
+    .slideover-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--card); z-index: 1;
+    }
+
+    .slideover-title { font-size: 15px; font-weight: 600; }
+
+    .close-btn {
+      width: 30px; height: 30px; border-radius: 7px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--text-secondary); transition: all .15s;
+    }
+
+    .close-btn:hover { background: var(--border-light); color: var(--text); }
+    .slideover-body { padding: 24px; }
+
+    /* ── Form ─────────────────────────────────── */
+    .form-group { margin-bottom: 14px; }
+
+    label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+
+    input, select, textarea {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13.5px; font-family: inherit; color: var(--text);
+      background: var(--card); outline: none;
+      transition: border .15s, box-shadow .15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Source bars ──────────────────────────── */
+    .source-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .source-name { font-size: 13px; color: var(--text); width: 70px; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 5px; background: var(--border-light); border-radius: 10px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 10px; background: var(--accent); transition: width .6s ease; }
+    .source-info { text-align: right; min-width: 80px; }
+    .source-pct { font-size: 12px; font-weight: 600; color: var(--text); }
+    .source-count { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Recommendation ───────────────────────── */
+    .rec-item {
+      padding: 13px 15px;
+      border: 1px solid #c7d2fe;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: var(--accent-light);
+      border-left: 3px solid var(--accent);
+    }
+
+    .rec-item p { font-size: 13px; line-height: 1.65; color: var(--text); }
+    .rec-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+    /* ── Report viewer ────────────────────────── */
+    .report-card {
+      padding: 14px 18px; border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all .15s;
+    }
+
+    .report-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .report-card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 5px; }
+    .report-card-meta { font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 12px; }
+
+    .report-content {
+      font-family: 'Inter', monospace;
+      font-size: 12.5px; line-height: 1.8;
+      white-space: pre-wrap; color: var(--text);
+    }
+
+    /* ── Feedback items ───────────────────────── */
+    .feedback-item {
+      padding: 12px 15px; background: var(--bg);
+      border-radius: 10px; margin-bottom: 8px;
+      border-left: 3px solid var(--border);
+    }
+
+    .feedback-item p { font-size: 13.5px; line-height: 1.6; }
+    .fb-date { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Agent banner ─────────────────────────── */
+    .agent-banner {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .banner-left { display: flex; align-items: center; gap: 13px; }
+    .banner-icon { font-size: 24px; }
+    .banner-title { font-size: 14px; font-weight: 600; color: #fff; }
+    .banner-sub { font-size: 12px; color: rgba(255,255,255,.38); margin-top: 2px; }
+    .banner-badge {
+      background: rgba(99,102,241,.2); color: #a5b4fc;
+      border: 1px solid rgba(99,102,241,.3);
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600;
+    }
+
+    /* ── Toast ────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--sidebar); color: #fff;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; z-index: 999;
+      display: none; box-shadow: var(--shadow-md);
+      max-width: 300px;
+    }
+
+    /* ── History action badge ─────────────────── */
+    .act-badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; font-family: monospace;
+    }
+
+    /* ── Pages ────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🎯</div>
+      <div>
+        <div class="logo-text">Агент</div>
+        <div class="logo-sub">Маркетинг · Директ</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Обзор</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard',this)">
+        <span class="nav-icon">▣</span> Дашборд
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Работа</div>
+      <div class="nav-item" data-page="leads" onclick="navigate('leads',this)">
+        <span class="nav-icon">◎</span> Лиды
+      </div>
+      <div class="nav-item" data-page="reports" onclick="navigate('reports',this)">
+        <span class="nav-icon">≡</span> Отчёты
+      </div>
+      <div class="nav-item" data-page="feedback" onclick="navigate('feedback',this)">
+        <span class="nav-icon">◌</span> Связь с агентом
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Система</div>
+      <div class="nav-item" data-page="history" onclick="navigate('history',this)">
+        <span class="nav-icon">◷</span> История
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="status-row">
+      <div class="dot" id="agent-dot"></div>
+      <span class="status-text" id="agent-status-text">Агент не подключён</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════════ -->
+<div class="main">
+
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Дашборд</span>
+    <div class="topbar-right">
+      <span class="date-chip" id="current-date"></span>
+      <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Добавить лид</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════ DASHBOARD ══════ -->
+    <div id="page-dashboard" class="page active">
+
+      <div class="agent-banner">
+        <div class="banner-left">
+          <div class="banner-icon">🤖</div>
+          <div>
+            <div class="banner-title">ИИ агент не подключён</div>
+            <div class="banner-sub">Автоматический анализ и оптимизация будут доступны после настройки API</div>
+          </div>
+        </div>
+        <div class="banner-badge">Скоро</div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">CPL</div>
+          <div class="kpi-value" id="kpi-cpl">—</div>
+          <div class="kpi-footer">подключите Яндекс API</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Всего лидов</div>
+          <div class="kpi-value" id="kpi-leads">0</div>
+          <div class="kpi-footer" id="kpi-leads-sub">за всё время</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Целевых</div>
+          <div class="kpi-value" id="kpi-qual">—%</div>
+          <div class="kpi-footer" id="kpi-qual-sub">0 из 0 лидов</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Расход</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-footer">данные из Директ API</div>
+        </div>
+      </div>
+
+      <div class="col-6040 mb-20">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Динамика CPL</span>
+            <span class="badge badge-gray" style="font-size:11px">последние 6 недель</span>
+          </div>
+          <div class="card-body" style="padding-top:14px">
+            <div style="position:relative;height:200px">
+              <canvas id="cpl-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Источники лидов</span>
+          </div>
+          <div class="card-body" id="sources-body">
+            <div class="empty" style="padding:20px">
+              <div class="empty-icon">📊</div>
+              <div class="empty-sub">Добавьте лиды с указанием источника</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-cols-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Рекомендации</span>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('feedback', document.querySelector('[data-page=feedback]'))">Добавить →</button>
+          </div>
+          <div class="card-body" id="rec-dash">
+            <div class="empty">
+              <div class="empty-icon">💡</div>
+              <div class="empty-title">Рекомендаций нет</div>
+              <div class="empty-sub">Добавьте вручную или подключите агента</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Последние лиды</span>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('leads', document.querySelector('[data-page=leads]'))">Все →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Источник</th><th>Статус</th><th>Дата</th></tr></thead>
+              <tbody id="recent-leads-body">
+                <tr><td colspan="3"><div class="empty" style="padding:28px">
+                  <div class="empty-sub">Нет лидов</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ LEADS ══════ -->
+    <div id="page-leads" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Лиды</div>
+          <div class="page-sub">Управляйте качеством входящих заявок</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddLead()">+ Добавить лид</button>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-body" style="padding:12px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="filterLeads('all',this)">Все</button>
+              <button class="filter-tab" onclick="filterLeads('yes',this)">Целевые</button>
+              <button class="filter-tab" onclick="filterLeads('no',this)">Нецелевые</button>
+            </div>
+            <div id="leads-count" style="font-size:12.5px;color:var(--text-secondary)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Дата</th><th>Источник</th><th>Кампания</th>
+                <th>Ключевое слово</th><th>Статус</th><th>Причина</th><th>Заметки</th>
+              </tr>
+            </thead>
+            <tbody id="leads-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ REPORTS ══════ -->
+    <div id="page-reports" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Отчёты</div>
+          <div class="page-sub">Еженедельные отчёты агента об оптимизации</div>
+        </div>
+      </div>
+
+      <div class="grid-cols-2">
+        <div id="reports-list">
+          <div class="empty" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:48px">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Отчётов пока нет</div>
+            <div class="empty-sub">Появятся после подключения агента</div>
+          </div>
+        </div>
+        <div>
+          <div class="card" id="report-viewer" style="display:none">
+            <div class="card-header">
+              <span class="card-title" id="report-viewer-title">Отчёт</span>
+              <div class="close-btn" onclick="closeReportViewer()">×</div>
+            </div>
+            <div class="card-body" style="max-height:70vh;overflow-y:auto">
+              <div class="report-content" id="report-viewer-content"></div>
+            </div>
+          </div>
+          <div id="report-viewer-hint" style="background:var(--card);border:1px solid var(--border);border-radius:12px">
+            <div class="empty" style="padding:48px">
+              <div class="empty-icon">👈</div>
+              <div class="empty-sub">Выберите отчёт для просмотра</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ FEEDBACK ══════ -->
+    <div id="page-feedback" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Связь с агентом</div>
+          <div class="page-sub">Сообщайте о качестве лидов — агент скорректирует стратегию</div>
+        </div>
+      </div>
+
+      <div class="grid-cols-2">
+        <div>
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title">Написать агенту</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Ваше сообщение</label>
+                <textarea id="fb-text" rows="4" placeholder="Например: лиды нецелевые — много студентов без бюджета. Или: всё хорошо, давайте масштабировать!"></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="submitFeedback()">Отправить</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">Добавить рекомендацию по сайту</span></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>Рекомендация</label>
+                <textarea id="rec-text" rows="3" placeholder="Например: упростить форму — убрать поля ВУЗ и Направление"></textarea>
+              </div>
+              <button class="btn btn-secondary" onclick="submitRecommendation()">Сохранить</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">История сообщений</span></div>
+          <div class="card-body" id="feedback-list" style="max-height:60vh;overflow-y:auto">
+            <div class="empty"><div class="empty-icon">💬</div><div class="empty-sub">Сообщений пока нет</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ HISTORY ══════ -->
+    <div id="page-history" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">История изменений</div>
+          <div class="page-sub">Все действия агента с деталями</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Время</th><th>Действие</th><th>Детали</th></tr></thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SLIDE-OVER ═══════════════ -->
+<div class="overlay" id="overlay" onclick="closeAddLead()"></div>
+<div class="slideover" id="slideover">
+  <div class="slideover-header">
+    <span class="slideover-title">Добавить лид</span>
+    <div class="close-btn" onclick="closeAddLead()">×</div>
+  </div>
+  <div class="slideover-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="lead-date" />
+      </div>
+      <div class="form-group">
+        <label>Источник *</label>
+        <select id="lead-source">
+          <option value="форма">Форма на сайте</option>
+          <option value="telegram">Telegram</option>
+          <option value="звонок">Звонок</option>
+          <option value="другое">Другое</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Кампания</label>
+        <input type="text" id="lead-campaign" placeholder="Название кампании" />
+      </div>
+      <div class="form-group">
+        <label>Ключевое слово</label>
+        <input type="text" id="lead-keyword" placeholder="Поисковый запрос" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Целевой лид?</label>
+      <select id="lead-qualified" onchange="toggleReason()">
+        <option value="true">✓ Да — целевой</option>
+        <option value="false">✗ Нет — нецелевой</option>
+      </select>
+    </div>
+    <div class="form-group" id="reason-block" style="display:none">
+      <label>Причина отказа</label>
+      <select id="lead-reason">
+        <option value="">— выберите —</option>
+        <option value="не тот сегмент">Не тот сегмент</option>
+        <option value="нет бюджета">Нет бюджета</option>
+        <option value="конкурент">Ушёл к конкуренту</option>
+        <option value="не ответил">Не вышел на связь</option>
+        <option value="другое">Другое</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Заметки</label>
+      <textarea id="lead-notes" placeholder="Дополнительный контекст..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="submitLead()">Сохранить</button>
+      <button class="btn btn-secondary" onclick="closeAddLead()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── Utils ────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const api = async (path, method='GET', body=null) => {
+  const opts = { method, headers: {'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+};
+
+let toastTimer;
+const toast = (msg, type='ok') => {
+  const el = $('toast');
+  el.textContent = msg;
+  el.style.background = type === 'err' ? '#dc2626' : '#0f172a';
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display='none', 3500);
+};
+
+// ─── Navigation ───────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard: 'Дашборд', leads: 'Лиды',
+  reports: 'Отчёты', feedback: 'Связь с агентом', history: 'История'
+};
+
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  $('topbar-title').textContent = PAGE_TITLES[page] || page;
+  const loaders = {
+    dashboard: loadDashboard, leads: () => loadLeads('all'),
+    reports: loadReports, feedback: loadFeedback, history: loadHistory
+  };
+  if (loaders[page]) loaders[page]();
+}
+
+// ─── CPL Chart ────────────────────────────────────────────
+let cplChart;
+function initCplChart(labels, data) {
+  const ctx = $('cpl-chart').getContext('2d');
+  if (cplChart) cplChart.destroy();
+  const hasData = data && data.some(v => v != null && v > 0);
+  cplChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels || ['Нед 1','Нед 2','Нед 3','Нед 4','Нед 5','Нед 6'],
+      datasets: [{
+        label: 'CPL (₽)', data: hasData ? data : new Array(6).fill(null),
+        borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.05)',
+        borderWidth: 2, pointRadius: 4,
+        pointBackgroundColor: '#6366f1', pointBorderColor: '#fff', pointBorderWidth: 2,
+        fill: true, tension: .4, spanGaps: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.parsed.y ? `${c.parsed.y} ₽` : 'нет данных' } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8' } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8', callback: v => v ? v+'₽' : '' } }
+      }
+    }
+  });
+}
+
+// ─── Dashboard ────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await api('/stats/dashboard');
+    const s = d.lead_stats;
+    $('kpi-leads').textContent = s.total || 0;
+    $('kpi-qual').textContent = s.total > 0 ? s.qualified_pct + '%' : '—%';
+    $('kpi-qual-sub').textContent = `${s.qualified} из ${s.total} лидов`;
+    renderSources(s.by_source || []);
+    renderRecentLeads(d.recent_leads || []);
+    renderDashRecs(d.recommendations || []);
+    initCplChart(null, null);
+  } catch(e) {
+    console.error('Dashboard:', e);
+    initCplChart(null, null);
+  }
+}
+
+function renderSources(sources) {
+  const el = $('sources-body');
+  if (!sources.length) {
+    el.innerHTML = `<div class="empty" style="padding:20px">
+      <div class="empty-icon">📊</div><div class="empty-sub">Добавьте лиды с источником</div></div>`;
+    return;
+  }
+  const max = Math.max(...sources.map(s => s.cnt));
+  el.innerHTML = sources.map(s => {
+    const w = max > 0 ? Math.round(s.cnt / max * 100) : 0;
+    const pct = s.cnt > 0 ? Math.round((s.qual||0) / s.cnt * 100) : 0;
+    return `<div class="source-bar">
+      <div class="source-name">${s.source}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div>
+      <div class="source-info">
+        <div class="source-pct">${pct}%</div>
+        <div class="source-count">${s.cnt} лид.</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentLeads(leads) {
+  const b = $('recent-leads-body');
+  if (!leads.length) {
+    b.innerHTML = `<tr><td colspan="3"><div class="empty" style="padding:28px">
+      <div class="empty-sub">Нет лидов</div></div></td></tr>`;
+    return;
+  }
+  b.innerHTML = leads.map(l => `<tr>
+    <td>${srcBadge(l.source)}</td>
+    <td>${l.is_qualified
+      ? '<span class="badge badge-green">Целевой</span>'
+      : '<span class="badge badge-red">Нецелевой</span>'}</td>
+    <td style="color:var(--text-muted);font-size:12px">${l.lead_date||'—'}</td>
+  </tr>`).join('');
+}
+
+function renderDashRecs(recs) {
+  const el = $('rec-dash');
+  if (!recs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">💡</div>
+      <div class="empty-title">Рекомендаций нет</div>
+      <div class="empty-sub">Добавьте вручную или подключите агента</div></div>`;
+    return;
+  }
+  el.innerHTML = recs.slice(0,2).map(r => `
+    <div class="rec-item">
+      <p>${r.content.substring(0,200)}${r.content.length>200?'…':''}</p>
+      <div class="rec-date">${r.created_at}</div>
+    </div>`).join('');
+}
+
+// ─── Leads ────────────────────────────────────────────────
+let activeFilter = 'all';
+
+async function loadLeads(filter='all') {
+  activeFilter = filter;
+  try {
+    const leads = await api(`/leads?limit=300&qualified=${filter}`);
+    const n = leads.length;
+    $('leads-count').textContent = `${n} ${n===1?'лид':n<5?'лида':'лидов'}`;
+    const b = $('leads-body');
+    if (!leads.length) {
+      b.innerHTML = `<tr><td colspan="7"><div class="empty">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Нет лидов</div>
+        <div class="empty-sub">Нажмите «+ Добавить лид» чтобы начать</div>
+      </div></td></tr>`;
+      return;
+    }
+    b.innerHTML = leads.map(l => `<tr>
+      <td style="color:var(--text-muted);font-size:12.5px">${l.lead_date||'—'}</td>
+      <td>${srcBadge(l.source)}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.campaign_name||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="${l.keyword||''}">${l.keyword||'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${l.is_qualified
+        ? '<span class="badge badge-green">Целевой</span>'
+        : '<span class="badge badge-red">Нецелевой</span>'}</td>
+      <td>${l.rejection_reason?`<span class="badge badge-yellow">${l.rejection_reason}</span>`:'<span style="color:var(--text-muted)">—</span>'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary);font-size:12px" title="${l.notes||''}">${l.notes||'—'}</td>
+    </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+function filterLeads(f, el) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadLeads(f);
+}
+
+const srcBadge = s => {
+  const map = { форма:'badge-blue', telegram:'badge-blue', звонок:'badge-gray', другое:'badge-gray' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+};
+
+// ─── Add Lead ─────────────────────────────────────────────
+function openAddLead() {
+  $('overlay').classList.add('open');
+  $('slideover').classList.add('open');
+  $('lead-date').value = new Date().toISOString().split('T')[0];
+}
+
+function closeAddLead() {
+  $('overlay').classList.remove('open');
+  $('slideover').classList.remove('open');
+}
+
+function toggleReason() {
+  $('reason-block').style.display = $('lead-qualified').value==='false' ? 'block' : 'none';
+}
+
+async function submitLead() {
+  try {
+    await api('/leads', 'POST', {
+      source: $('lead-source').value,
+      is_qualified: $('lead-qualified').value === 'true',
+      lead_date: $('lead-date').value,
+      campaign_name: $('lead-campaign').value,
+      keyword: $('lead-keyword').value,
+      rejection_reason: $('lead-reason').value,
+      notes: $('lead-notes').value,
+    });
+    toast('Лид сохранён ✓');
+    closeAddLead();
+    ['lead-campaign','lead-keyword','lead-notes'].forEach(id => $(id).value = '');
+    $('lead-reason').value = ''; $('lead-qualified').value = 'true';
+    $('reason-block').style.display = 'none';
+    loadDashboard(); loadLeads(activeFilter);
+  } catch(e) { toast('Ошибка: ' + e.message, 'err'); }
+}
+
+// ─── Reports ──────────────────────────────────────────────
+async function loadReports() {
+  try {
+    const reports = await api('/reports');
+    const el = $('reports-list');
+    if (!reports.length) {
+      el.innerHTML = `<div class="empty" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:48px">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Отчётов пока нет</div>
+        <div class="empty-sub">Появятся после подключения агента</div></div>`;
+      closeReportViewer(); return;
+    }
+    el.innerHTML = reports.map(r => `
+      <div class="report-card" onclick="viewReport(${r.id})">
+        <div class="report-card-title">${r.title}</div>
+        <div class="report-card-meta">
+          <span>${r.period_from||''} — ${r.period_to||''}</span>
+          <span>${r.created_at}</span>
+        </div>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function viewReport(id) {
+  try {
+    const r = await api(`/reports/${id}`);
+    $('report-viewer-title').textContent = r.title;
+    $('report-viewer-content').textContent = r.content;
+    $('report-viewer').style.display = 'block';
+    $('report-viewer-hint').style.display = 'none';
+  } catch(e) { toast('Ошибка загрузки', 'err'); }
+}
+
+function closeReportViewer() {
+  $('report-viewer').style.display = 'none';
+  $('report-viewer-hint').style.display = 'block';
+}
+
+// ─── Feedback ─────────────────────────────────────────────
+async function loadFeedback() {
+  try {
+    const items = await api('/feedback');
+    const el = $('feedback-list');
+    if (!items.length) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">💬</div><div class="empty-sub">Сообщений пока нет</div></div>`;
+      return;
+    }
+    el.innerHTML = items.map(f => `
+      <div class="feedback-item">
+        <p>${f.message}</p>
+        <div class="fb-date">${f.created_at}</div>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function submitFeedback() {
+  const msg = $('fb-text').value.trim();
+  if (!msg) return;
+  try {
+    await api('/feedback', 'POST', { message: msg });
+    $('fb-text').value = '';
+    toast('Сообщение отправлено ✓');
+    loadFeedback();
+  } catch(e) { toast('Ошибка: ' + e.message, 'err'); }
+}
+
+async function submitRecommendation() {
+  const c = $('rec-text').value.trim();
+  if (!c) return;
+  try {
+    await api('/recommendations', 'POST', { content: c });
+    $('rec-text').value = '';
+    toast('Рекомендация сохранена ✓');
+    loadDashboard();
+  } catch(e) { toast('Ошибка: ' + e.message, 'err'); }
+}
+
+// ─── History ──────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const items = await api('/history');
+    const b = $('history-body');
+    if (!items.length) {
+      b.innerHTML = `<tr><td colspan="3"><div class="empty">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-title">История пуста</div>
+        <div class="empty-sub">Здесь будут все действия агента</div>
+      </div></td></tr>`;
+      return;
+    }
+    b.innerHTML = items.map(h => {
+      const det = typeof h.details==='object' ? JSON.stringify(h.details) : (h.details||'—');
+      const c = h.action.includes('pause') ? '#fef2f2:#b91c1c'
+              : h.action.includes('report') ? '#eff6ff:#1d4ed8'
+              : h.action.includes('optim') ? '#f0fdf4:#15803d'
+              : '#f1f5f9:#475569';
+      const [bg, fg] = c.split(':');
+      return `<tr>
+        <td style="color:var(--text-muted);white-space:nowrap;font-size:12px">${h.created_at}</td>
+        <td><span class="act-badge" style="background:${bg};color:${fg}">${h.action}</span></td>
+        <td style="color:var(--text-secondary);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${det}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ─── Init ─────────────────────────────────────────────────
+$('current-date').textContent = new Date().toLocaleDateString('ru-RU', {
+  day: 'numeric', month: 'long', year: 'numeric'
+});
+
+loadDashboard();
+</script>
+</body>
+</html>
